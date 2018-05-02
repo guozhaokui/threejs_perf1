@@ -1,43 +1,23 @@
-<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<title>three.js webgl - performance</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				background:#fff;
-				padding:0;
-				margin:0;
-				font-weight: bold;
-				overflow:hidden;
-			}
-
-			#stats { position: absolute; top:0; left: 0 }
-			#stats #fps { background: transparent !important }
-			#stats #fps #fpsText { color: #eee !important }
-			#stats #fps #fpsGraph { display: none }
-		</style>
+	
 	</head>
 	<body>
-
-		<script src="../build/three.min.js"></script>
-
-		<script src="js/Detector.js"></script>
-		<script src="js/libs/stats.min.js"></script>
+		<script src="../build/three.min.js" loader='laya'></script>
 
 		<script>
+            alert(document.body);
+            function layaNativeAdpt(){
 
-			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+            }
 
-			var container, stats;
-
+			var container;
 			var camera, scene, renderer;
-
 			var mesh, geometry;
-
 			var mouseX = 0, mouseY = 0;
-
 			var SCREEN_WIDTH = window.innerWidth,
 				SCREEN_HEIGHT = window.innerHeight;
 
@@ -49,7 +29,6 @@
 
 
 			function init() {
-
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
@@ -121,11 +100,9 @@
 
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				window.addEventListener( 'resize', onWindowResize, false );
-
 			}
 
 			//
-
 			function onWindowResize( event ) {
 
 				SCREEN_WIDTH = window.innerWidth;
@@ -151,23 +128,15 @@
 			//
 
 			function animate() {
-
 				requestAnimationFrame( animate );
-
 				render();
-				stats.update();
-
 			}
 
 			function render() {
-
 				camera.position.x += ( mouseX - camera.position.x ) * .05;
 				camera.position.y += ( - mouseY - camera.position.y ) * .05;
-
 				camera.lookAt( scene.position );
-
 				renderer.render( scene, camera );
-
 			}
 
 		</script>
