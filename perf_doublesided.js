@@ -26,8 +26,14 @@ var SCREEN_WIDTH = window.innerWidth,
 
 var windowHalfX = SCREEN_WIDTH / 2;
 var windowHalfY = SCREEN_HEIGHT / 2;
+var _glCommandEncoder = null;
+var webgl = null;
+var useCmdBuf=window.conch;
 
 init();
+//setTimeout(animate,2000);
+var startRender=false;
+setTimeout(()=>{startRender=true;},1000);
 animate();
 
 
@@ -99,6 +105,17 @@ function init() {
 
     document.addEventListener( 'mousemove', onDocumentMouseMove, false );
     window.addEventListener( 'resize', onWindowResize, false );
+
+    webgl = renderer.context;
+    if(webgl == null){
+        alert("do not support webgl");
+        return;
+    }
+    if(useCmdBuf){
+        // debugger;
+        _glCommandEncoder =webgl.createCommandEncoder(102400, 2560, false);
+        _glCommandEncoder.fuck=1;
+    } 
 }
 
 //
@@ -128,13 +145,23 @@ function onDocumentMouseMove(event) {
 
 function animate() {
     requestAnimationFrame( animate );
-    render();
+    if(startRender)
+        render();
 }
 
 function render() {
+    if (_glCommandEncoder){
+        _glCommandEncoder.clearEncoding();
+        webgl.beginCommandEncoding(_glCommandEncoder);
+    }
     camera.position.x += ( mouseX - camera.position.x ) * .05;
     camera.position.y += ( - mouseY - camera.position.y ) * .05;
     camera.lookAt( scene.position );
     renderer.render( scene, camera );
-    renderer.context.commit();
+    if (_glCommandEncoder){
+        webgl.endCommandEncoding();
+        webgl.useCommandEncoder(_glCommandEncoder.getPtrID(), -1, 4);
+	}
+    var ctx = renderer.context;
+    ctx.commit && ctx.commit();
 }
