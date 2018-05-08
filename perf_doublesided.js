@@ -26,9 +26,7 @@ var SCREEN_WIDTH = window.innerWidth,
 
 var windowHalfX = SCREEN_WIDTH / 2;
 var windowHalfY = SCREEN_HEIGHT / 2;
-var _glCommandEncoder = null;
 var webgl = null;
-var useCmdBuf=window.conch;
 
 init();
 //setTimeout(animate,2000);
@@ -36,6 +34,106 @@ var startRender=false;
 setTimeout(()=>{startRender=true;},1000);
 animate();
 
+function patchgl(gl){
+    gl.getActiveAttrib = function(program, index){
+        switch(index){
+            case 0:
+            return {size: 1, type: 35665, name: "position"};
+            break;
+            case 1:
+            return {size: 1, type: 35665, name: "normal"};
+            break;
+            case 2:
+            break;
+        }
+        return null;        
+    }
+    
+    gl.getActiveUniform=function(program, index) {
+        var uniformInfo = [
+            {size: 1, type: 35676, name: "modelMatrix"},
+            {size: 1, type: 35676, name: "modelViewMatrix"},
+            {size: 1, type: 35676, name: "projectionMatrix"},
+            {size: 1, type: 35676, name: "viewMatrix"},
+            {size: 1, type: 35675, name: "normalMatrix"},
+            {size: 1, type: 35665, name: "cameraPosition"},
+            {size: 1, type: 35665, name: "diffuse"},
+            {size: 1, type: 35665, name: "emissive"},
+            {size: 1, type: 35665, name: "specular"},
+            {size: 1, type: 5126, name: "shininess"},
+            {size: 1, type: 5126, name: "opacity"},
+            {size: 1, type: 5126, name: "reflectivity"},
+            {size: 1, type: 5126, name: "flipEnvMap"},
+            {size: 1, type: 35665, name: "ambientLightColor"},
+            {size: 1, type: 35665, name: "pointLights[0].position"},
+            {size: 1, type: 35665, name: "pointLights[0].color"},
+            {size: 1, type: 5126, name: "pointLights[0].distance"},
+            {size: 1, type: 5126, name: "pointLights[0].decay"},
+            {size: 1, type: 5124, name: "pointLights[0].shadow"},
+            {size: 1, type: 5126, name: "pointLights[0].shadowBias"},
+            {size: 1, type: 5126, name: "pointLights[0].shadowRadius"},
+            {size: 1, type: 35664, name: "pointLights[0].shadowMapSize"},
+            {size: 1, type: 35665, name: "pointLights[1].position"},
+            {size: 1, type: 35665, name: "pointLights[1].color"},
+            {size: 1, type: 5126, name: "pointLights[1].distance"},
+            {size: 1, type: 5126, name: "pointLights[1].decay"},
+            {size: 1, type: 5124, name: "pointLights[1].shadow"},
+            {size: 1, type: 5126, name: "pointLights[1].shadowBias"},
+            {size: 1, type: 5126, name: "pointLights[1].shadowRadius"},
+            {size: 1, type: 35664, name: "pointLights[1].shadowMapSize"},
+            {size: 1, type: 35665, name: "pointLights[2].position"},
+            {size: 1, type: 35665, name: "pointLights[2].color"},
+            {size: 1, type: 5126, name: "pointLights[2].distance"},
+            {size: 1, type: 5126, name: "pointLights[2].decay"},
+            {size: 1, type: 5124, name: "pointLights[2].shadow"},
+            {size: 1, type: 5126, name: "pointLights[2].shadowBias"},
+            {size: 1, type: 5126, name: "pointLights[2].shadowRadius"},
+            {size: 1, type: 35664, name: "pointLights[2].shadowMapSize"},
+            {size: 1, type: 35680, name: "envMap"}        
+        ];
+        return uniformInfo[index];    
+    }
+
+    gl.getProgramParameter = function(program, pname) {
+        var ACTIVE_ATTRIBUTES = 0x8b89;
+        var ACTIVE_UNIFORMS = 0x8b86;
+        switch(pname){
+            case ACTIVE_ATTRIBUTES:
+            return 2;
+            break;
+            case ACTIVE_UNIFORMS:
+            return 39;
+            break;
+        }
+        //console.log("getProgramParameter can't support");
+        return true;
+    }    
+
+    gl.getProgramInfoLog=function(program) {
+        return '';
+    }
+
+    gl.getShaderPrecisionFormat = function(_args) {
+        return {
+            rangeMin:127,
+            rangeMax:127,
+            precision:23
+        };   
+    }
+
+    gl.getShaderInfoLog = function(shader) {
+        return '';
+    }
+    
+    gl.getParameter = function(pname) {
+        switch(pname){
+            case this.MAX_CUBE_MAP_TEXTURE_SIZE:
+            return 4096;
+            break;
+        }
+        return 0;
+    }    
+}
 
 function init() {
     container = document.createElement( 'div' );
@@ -111,11 +209,6 @@ function init() {
         alert("do not support webgl");
         return;
     }
-    if(useCmdBuf){
-        // debugger;
-        _glCommandEncoder =webgl.createCommandEncoder(102400, 2560, false);
-        _glCommandEncoder.fuck=1;
-    } 
 }
 
 //
@@ -150,18 +243,8 @@ function animate() {
 }
 
 function render() {
-    if (_glCommandEncoder){
-        _glCommandEncoder.clearEncoding();
-        webgl.beginCommandEncoding(_glCommandEncoder);
-    }
     camera.position.x += ( mouseX - camera.position.x ) * .05;
     camera.position.y += ( - mouseY - camera.position.y ) * .05;
     camera.lookAt( scene.position );
     renderer.render( scene, camera );
-    if (_glCommandEncoder){
-        webgl.endCommandEncoding();
-        webgl.useCommandEncoder(_glCommandEncoder.getPtrID(), -1, 4);
-	}
-    var ctx = renderer.context;
-    ctx.commit && ctx.commit();
 }
