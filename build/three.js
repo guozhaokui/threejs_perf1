@@ -25182,7 +25182,6 @@ THREE.WebGLRenderer = function ( parameters ) {
 
 		}
 
-        window.conch && patchgl(_gl);
 		_canvas.addEventListener( 'webglcontextlost', onContextLost, false );
 
 	} catch ( error ) {
